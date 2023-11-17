@@ -2,8 +2,15 @@ import sys
 import anyio
 import dagger
 import re
-import pysolve
+from solve_strategy import PyStrategy, GoLangStrategy
 
+SUPPORTED_LANGUAGE = {
+    "python": PyStrategy,
+    "golang": GoLangStrategy,
+    "rust": None,
+    "java": None,
+    "js": None
+}
 
 async def run_year():
     async with dagger.Connection(dagger.Config(log_output=sys.stderr)) as client:
@@ -21,18 +28,23 @@ async def run_year():
                 day_dir = year_dir.directory(f"{day}")
 
                 entries = await day_dir.entries()
-                pythonssss = [e for e in entries if re.match(r'python', e)]
-                for python in pythonssss:
-                    working_dir = day_dir.directory(f"{python}")
+
+                for language, strategy in SUPPORTED_LANGUAGE.items():
+                    if language not in entries or strategy is None:
+                        break
+                    working_dir = day_dir.directory(f"{language}")
+                    image_dir = client.host().directory(f"images/{language}")
+
+                    strategy = SUPPORTED_LANGUAGE[language]
                     container = (
-                        pysolve
-                            .image(client)
+                        client.container()
+                            .build(image_dir)
                             .with_directory("/src", working_dir)
                             .with_workdir("/src")
                     )
                     async with anyio.create_task_group() as tg:
-                        tg.start_soon(pysolve.solve, container)
-                        tg.start_soon(pysolve.test, container)
+                        tg.start_soon(strategy.solve, container)
+                        tg.start_soon(strategy.test, container)
 
 if __name__ == "__main__":
     try:
