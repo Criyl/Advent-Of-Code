@@ -2,58 +2,49 @@ import sys
 import anyio
 import dagger
 import re
+from solve_strategy import PyStrategy, GoLangStrategy
 
-
-async def solves(client: dagger.Client, container: dagger.Container):
-    src = client.host().directory(".")
-    entries = await src.entries()
-    days = [e for e in entries if re.match(r'day_', e)]
-    python = (container)
-    for day in days:
-        python = python.with_exec(["python3", f"{day}/main.py"])
-
-    await python.sync()
-    print(f"{await python.stdout()}")
-
-async def pytest(client: dagger.Client, container: dagger.Container):
-    python = (
-        container
-        .with_exec(["pytest"])
-    )
-
-    print(f"Starting tests for Python")
-    await python.sync()
-    print(f"{await python.stdout()}")
-
-
-async def flake8(client: dagger.Client, container: dagger.Container):
-    python = (
-        container
-        .with_exec(["flake8"])
-    )
-
-    await python.sync()
-    print(f"{await python.stdout()}")
+SUPPORTED_LANGUAGE = {
+    "python": PyStrategy,
+    "golang": GoLangStrategy,
+    "rust": None,
+    "java": None,
+    "js": None
+}
 
 async def run_year():
     async with dagger.Connection(dagger.Config(log_output=sys.stderr)) as client:
         src = client.host().directory(".")
 
-
         entries = await src.entries()
-        years = [e for e in entries if re.match(r'AC', e)]
+        years = [e for e in entries if re.match(r'AoC', e)]
+
         for year in years:
-            year_dir = client.host().directory(f"{year}")
-            container = (
-                client.container()
-                .build(src)
-                .with_directory("/src", year_dir)
-                .with_workdir("/src")
-            )
-            async with anyio.create_task_group() as tg:
-                tg.start_soon(solves, client, container)
-                tg.start_soon(pytest, client, container)
-                tg.start_soon(flake8, client, container)
+            year_dir = src.directory(f"{year}")
+
+            entries = await year_dir.entries()
+            days = [e for e in entries if re.match(r'day', e)]
+            for day in days:
+                day_dir = year_dir.directory(f"{day}")
+
+                entries = await day_dir.entries()
+
+                for language, strategy in SUPPORTED_LANGUAGE.items():
+                    if language not in entries or strategy is None:
+                        break
+                    working_dir = day_dir.directory(f"{language}")
+                    image_dir = client.host().directory(f"images/{language}")
+
+                    strategy = SUPPORTED_LANGUAGE[language]
+                    container = (
+                        client.container()
+                            .build(image_dir)
+                            .with_directory("/src", working_dir)
+                            .with_workdir("/src")
+                    )
+                    async with anyio.create_task_group() as tg:
+                        tg.start_soon(strategy.solve, container)
+                        tg.start_soon(strategy.test, container)
 
 if __name__ == "__main__":
     try:
