@@ -13,7 +13,9 @@ jobs:
           python-version: 3.11.x
       - name: Install Dagger-IO
         run: python3 -m pip install dagger-io
+      - name: Install Dagger CLI
+        run: curl -L https://dl.dagger.io/dagger/install.sh | sh
       - name: Checkout
         uses: actions/checkout@v3
       - name: Run Dagger CI
-        run: python3 ./.github/workflows/ci.py
+        run: ./bin/dagger run python .github/workflows/ci.py >> dist/result.log

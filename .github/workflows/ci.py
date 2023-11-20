@@ -12,8 +12,23 @@ SUPPORTED_LANGUAGE = {
     "js": None
 }
 
+LANG_CONTAINER = {}
+
+def build_containers(client):
+    for language, strategy in SUPPORTED_LANGUAGE.items():
+        if strategy is None:
+            break
+        image_dir = client.host().directory(f"images/{language}")
+
+        LANG_CONTAINER[language] = (
+            client.container()
+                .build(image_dir)
+        )
+
 async def run_year():
     async with dagger.Connection(dagger.Config(log_output=sys.stderr)) as client:
+        build_containers(client)
+
         src = client.host().directory(".")
 
         entries = await src.entries()
@@ -33,18 +48,16 @@ async def run_year():
                     if language not in entries or strategy is None:
                         break
                     working_dir = day_dir.directory(f"{language}")
-                    image_dir = client.host().directory(f"images/{language}")
-
+                    print(f"{year}/{day}/{language}")
                     strategy = SUPPORTED_LANGUAGE[language]
                     container = (
-                        client.container()
-                            .build(image_dir)
+                        LANG_CONTAINER[language]
                             .with_directory("/src", working_dir)
                             .with_workdir("/src")
                     )
                     async with anyio.create_task_group() as tg:
-                        tg.start_soon(strategy.solve, container)
-                        tg.start_soon(strategy.test, container)
+                        tg.start_soon(strategy.solve, container, name=f"{language}-solve")
+                        tg.start_soon(strategy.test, container, name=f"{language}-test")
 
 if __name__ == "__main__":
     try:
