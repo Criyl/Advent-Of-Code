@@ -35,3 +35,15 @@ class RustStrategy:
         result = container.with_workdir("/").with_exec(["cargo", "run"])
         await result.sync()
         print(f"Solve:\n{await result.stdout()}")
+
+
+class JavaStrategy:
+    async def test(container: dagger.Container):
+        result = container.with_workdir("/").with_exec(["mvn", "test"])
+        await result.sync()
+        print(f"Test:\n{await result.stdout()}")
+
+    async def solve(container: dagger.Container):
+        result = container.with_workdir("/").with_exec(["mvn", "-v"])
+        await result.sync()
+        print(f"Solve:\n{await result.stdout()}")
