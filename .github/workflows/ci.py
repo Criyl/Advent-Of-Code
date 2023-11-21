@@ -2,17 +2,18 @@ import sys
 import anyio
 import dagger
 import re
-from solve_strategy import PyStrategy, GoLangStrategy
+from solve_strategy import PyStrategy, GoLangStrategy, RustStrategy
 
 SUPPORTED_LANGUAGE = {
     "python": PyStrategy,
     "golang": GoLangStrategy,
-    "rust": None,
+    "rust": RustStrategy,
     "java": None,
-    "js": None
+    "js": None,
 }
 
 LANG_CONTAINER = {}
+
 
 def build_containers(client):
     for language, strategy in SUPPORTED_LANGUAGE.items():
@@ -20,10 +21,8 @@ def build_containers(client):
             break
         image_dir = client.host().directory(f"images/{language}")
 
-        LANG_CONTAINER[language] = (
-            client.container()
-                .build(image_dir)
-        )
+        LANG_CONTAINER[language] = client.container().build(image_dir)
+
 
 async def run_year():
     async with dagger.Connection(dagger.Config(log_output=sys.stderr)) as client:
@@ -32,13 +31,13 @@ async def run_year():
         src = client.host().directory(".")
 
         entries = await src.entries()
-        years = [e for e in entries if re.match(r'AoC', e)]
+        years = [e for e in entries if re.match(r"AoC", e)]
 
         for year in years:
             year_dir = src.directory(f"{year}")
 
             entries = await year_dir.entries()
-            days = [e for e in entries if re.match(r'day', e)]
+            days = [e for e in entries if re.match(r"day", e)]
             for day in days:
                 day_dir = year_dir.directory(f"{day}")
 
@@ -52,12 +51,15 @@ async def run_year():
                     strategy = SUPPORTED_LANGUAGE[language]
                     container = (
                         LANG_CONTAINER[language]
-                            .with_directory("/src", working_dir)
-                            .with_workdir("/src")
+                        .with_directory("/src", working_dir)
+                        .with_workdir("/src")
                     )
                     async with anyio.create_task_group() as tg:
-                        tg.start_soon(strategy.solve, container, name=f"{language}-solve")
+                        tg.start_soon(
+                            strategy.solve, container, name=f"{language}-solve"
+                        )
                         tg.start_soon(strategy.test, container, name=f"{language}-test")
+
 
 if __name__ == "__main__":
     try:
