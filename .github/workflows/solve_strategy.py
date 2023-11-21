@@ -2,18 +2,22 @@ import dagger
 
 
 class PyStrategy:
+    def before(container: dagger.Container) -> dagger.Container:
+        return container
+    
     async def test(container: dagger.Container):
         result = container.with_exec(["pytest"])
         await result.sync()
-        print(f"Test:\n{await result.stdout()}")
 
     async def solve(container: dagger.Container):
-        result = container.with_exec(["python3", f"main.py"])
+        result = container.with_exec(["python3", "main.py"])
         await result.sync()
-        print(f"Solve:\n{await result.stdout()}")
 
 
 class GoLangStrategy:
+    def before(container: dagger.Container) -> dagger.Container:
+        return container
+    
     async def test(container: dagger.Container):
         result = container.with_exec(["go", "test", "."])
         await result.sync()
@@ -26,6 +30,9 @@ class GoLangStrategy:
 
 
 class RustStrategy:
+    def before(container: dagger.Container) -> dagger.Container:
+        return container
+    
     async def test(container: dagger.Container):
         result = container.with_exec(["cargo", "test"])
         await result.sync()
@@ -38,6 +45,11 @@ class RustStrategy:
 
 
 class JavaStrategy:
+    def before(container: dagger.Container) -> dagger.Container:
+        return container.with_workdir("/").with_exec(
+                ["mvn", "install", "-q"]
+            )
+    
     async def test(container: dagger.Container):
         result = container.with_workdir("/").with_exec(["mvn", "test"])
         await result.sync()
@@ -48,6 +60,23 @@ class JavaStrategy:
             container.with_workdir("/")
             .with_exec(["mvn", "package"])
             .with_exec(["java", "-cp", "target/main-0.1.0.jar", "solve.Main"])
+        )
+
+        await result.sync()
+        print(f"Solve:\n{await result.stdout()}")
+
+class JSStrategy:
+    def before(container: dagger.Container) -> dagger.Container:
+        return container.with_workdir("/").with_exec(["npm","install"])
+    
+    async def test(container: dagger.Container):
+        result = container.with_exec(["npm", "test"])
+        await result.sync()
+        print(f"Test:\n{await result.stdout()}")
+
+    async def solve(container: dagger.Container):
+        result = (
+            container.with_exec(["npm","run" ,"solve"])
         )
 
         await result.sync()

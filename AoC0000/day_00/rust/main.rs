@@ -1,6 +1,5 @@
 fn solve(_input: &str) -> String {
     let result = "Hello, World";
-    println!("{}", result);
     return String::from(result);
 }
 
