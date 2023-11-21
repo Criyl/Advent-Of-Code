@@ -37,6 +37,7 @@ SUPPORTED_LANGUAGE = {
 
 ##### The Example
 Include under `AoC0000/day_00/<language>` a main entry point and test files where applicable
+Include under `AoC0000/bad_day_00/<language>` an example of the tests failing where applicable
 
 ##### The README
 Finally update the support table on the `README.md` to include the new language

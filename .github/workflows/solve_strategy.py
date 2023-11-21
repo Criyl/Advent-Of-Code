@@ -1,83 +1,127 @@
 import dagger
+from reporting import DayReport
 
+class SolveStrategy:
+    report: DayReport
 
-class PyStrategy:
-    def before(container: dagger.Container) -> dagger.Container:
+    def __init__(self, year, day, language) -> None:
+        self.report = DayReport(year,day,language)
+
+    def before(self, container: dagger.Container) -> dagger.Container:
         return container
     
-    async def test(container: dagger.Container):
+    async def test(self, container: dagger.Container):
+        ...
+
+    async def solve(self, container: dagger.Container):
+        ...
+
+
+class PyStrategy(SolveStrategy):
+    async def test(self, container: dagger.Container):
         result = container.with_exec(["pytest"])
-        await result.sync()
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
-    async def solve(container: dagger.Container):
+    async def solve(self, container: dagger.Container):
         result = container.with_exec(["python3", "main.py"])
-        await result.sync()
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
 
-class GoLangStrategy:
-    def before(container: dagger.Container) -> dagger.Container:
-        return container
-    
-    async def test(container: dagger.Container):
+class GoLangStrategy(SolveStrategy):
+    async def test(self, container: dagger.Container):
         result = container.with_exec(["go", "test", "."])
-        await result.sync()
-        print(f"Test:\n{await result.stdout()}")
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
-    async def solve(container: dagger.Container):
+    async def solve(self, container: dagger.Container):
         result = container.with_exec(["go", "run", "main.go"])
-        await result.sync()
-        print(f"Solve:\n{await result.stdout()}")
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
 
-class RustStrategy:
-    def before(container: dagger.Container) -> dagger.Container:
-        return container
+class RustStrategy(SolveStrategy):
+    def before(self, container: dagger.Container) -> dagger.Container:
+        return container.with_workdir("/").with_exec(
+                ["cargo", "install", "--path","."]
+            )
     
-    async def test(container: dagger.Container):
+    async def test(self, container: dagger.Container):
         result = container.with_exec(["cargo", "test"])
-        await result.sync()
-        print(f"Test:\n{await result.stdout()}")
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
-    async def solve(container: dagger.Container):
-        result = container.with_workdir("/").with_exec(["cargo", "run"])
-        await result.sync()
-        print(f"Solve:\n{await result.stdout()}")
+    async def solve(self, container: dagger.Container):
+        result = container.with_exec(["cargo", "run"])
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
 
-class JavaStrategy:
-    def before(container: dagger.Container) -> dagger.Container:
+class JavaStrategy(SolveStrategy):
+    def before(self, container: dagger.Container) -> dagger.Container:
         return container.with_workdir("/").with_exec(
                 ["mvn", "install", "-q"]
             )
     
-    async def test(container: dagger.Container):
+    async def test(self, container: dagger.Container):
         result = container.with_workdir("/").with_exec(["mvn", "test"])
-        await result.sync()
-        print(f"Test:\n{await result.stdout()}")
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
-    async def solve(container: dagger.Container):
+    async def solve(self, container: dagger.Container):
         result = (
             container.with_workdir("/")
             .with_exec(["mvn", "package"])
             .with_exec(["java", "-cp", "target/main-0.1.0.jar", "solve.Main"])
         )
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
-        await result.sync()
-        print(f"Solve:\n{await result.stdout()}")
-
-class JSStrategy:
-    def before(container: dagger.Container) -> dagger.Container:
-        return container.with_workdir("/").with_exec(["npm","install"])
+class JSStrategy(SolveStrategy):
+    def before(self, container: dagger.Container) -> dagger.Container:
+        return container.with_workdir("/")
     
-    async def test(container: dagger.Container):
+    async def test(self, container: dagger.Container):
         result = container.with_exec(["npm", "test"])
-        await result.sync()
-        print(f"Test:\n{await result.stdout()}")
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
-    async def solve(container: dagger.Container):
+    async def solve(self, container: dagger.Container):
         result = (
             container.with_exec(["npm","run" ,"solve"])
         )
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
 
-        await result.sync()
-        print(f"Solve:\n{await result.stdout()}")
+
+async def handle(strategy, container):
+    try:
+        await strategy.test(container)
+        await strategy.solve(container)
+    except dagger.QueryError as e:
+        strategy.report = strategy.report.mutate(
+            "", 
+            f"{e}", 
+            passed=False
+        )
