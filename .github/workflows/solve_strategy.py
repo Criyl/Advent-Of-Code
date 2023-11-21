@@ -44,6 +44,11 @@ class JavaStrategy:
         print(f"Test:\n{await result.stdout()}")
 
     async def solve(container: dagger.Container):
-        result = container.with_workdir("/").with_exec(["mvn", "-v"])
+        result = (
+            container.with_workdir("/")
+            .with_exec(["mvn", "package"])
+            .with_exec(["java", "-cp", "target/main-0.1.0.jar", "solve.Main"])
+        )
+
         await result.sync()
         print(f"Solve:\n{await result.stdout()}")
