@@ -20,5 +20,5 @@ jobs:
         if: github.repository == 'main'
         uses: actions/upload-artifact@v3
         with:
-          name: dist
-          path: dist
+          name: results
+          path: dist/result.log
