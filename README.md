@@ -15,3 +15,5 @@ List of supported languages
 | Java     | Junit                     | Amazon Corretto 11 |
 
 \* Standard Library
+
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md) on how to add support for your own language
