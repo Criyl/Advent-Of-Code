@@ -3,5 +3,6 @@ __pycache__
 .pytest_cache
 .gitconfig
 dist/
-**/java/target/
+**/target/
 **/node_modules/
+report.log

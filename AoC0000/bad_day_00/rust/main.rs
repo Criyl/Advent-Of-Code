@@ -13,6 +13,6 @@ mod tests {
 
     #[test]
     fn test_solve() {
-        assert_eq!(solve("Test Case 1"), String::from("Hello, World"));
+        assert_eq!(solve("Test Case 1"), String::from("Hello, Place"));
     }
 }
