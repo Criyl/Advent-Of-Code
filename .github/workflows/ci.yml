@@ -1,7 +1,6 @@
 name: CI Pipeline
-
 on:
-  pull_request:
+  push:
     branches: [main]
 jobs:
   deploy:
@@ -18,6 +17,7 @@ jobs:
       - name: Run Dagger CLI
         run: curl -L https://dl.dagger.io/dagger/install.sh | sh && mkdir dist && ./bin/dagger run python .github/workflows/ci.py >> dist/result.log
       - name: Archive artifacts
+        if: github.repository == 'main'
         uses: actions/upload-artifact@v3
         with:
           name: dist
