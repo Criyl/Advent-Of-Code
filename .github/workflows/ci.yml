@@ -15,7 +15,7 @@ jobs:
       - name: Run Dagger CLI
         run: curl -L https://dl.dagger.io/dagger/install.sh | sh && mkdir dist && ./bin/dagger run python .github/workflows/ci.py >> dist/result.log
       - name: Archive artifacts
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/ci-improvements'
         uses: actions/upload-artifact@v3
         with:
           name: results
