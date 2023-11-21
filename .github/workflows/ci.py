@@ -71,4 +71,9 @@ if __name__ == "__main__":
     except dagger.ExecError as e:
         print(e)
     finally:
-        print(generate_report(map(lambda strategy: strategy.report, DAY_REPORTS)))
+        reports = map(lambda strategy: strategy.report, DAY_REPORTS)
+
+        print(generate_report(reports))
+        for report in reports:
+            if not report.passed():
+                sys.exit(1)

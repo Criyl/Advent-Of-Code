@@ -12,7 +12,7 @@ jobs:
         run: python3 -m pip install dagger-io
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Run Dagger CLI
+      - name: Install Dagger CLI
         run: curl -L https://dl.dagger.io/dagger/install.sh | sh && mkdir dist
       - name: Run Dagger CLI
         run: ./bin/dagger run python .github/workflows/ci.py >> dist/result.log

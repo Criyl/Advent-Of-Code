@@ -3,9 +3,8 @@ import anyio
 import dagger
 
 
-ci.DAY_REGEX = r"^bad"
-
 if __name__ == "__main__":
+    ci.DAY_REGEX = r"^bad"
     try:
         anyio.run(ci.run_year)
     except dagger.ExecError as e:
