@@ -4,3 +4,4 @@ __pycache__
 .gitconfig
 dist/
 **/java/target/
+**/node_modules/

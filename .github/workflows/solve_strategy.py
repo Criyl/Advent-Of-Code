@@ -47,8 +47,8 @@ class RustStrategy:
 class JavaStrategy:
     def before(container: dagger.Container) -> dagger.Container:
         return container.with_workdir("/").with_exec(
-            ["mvn", "install", "-q"]
-        )
+                ["mvn", "install", "-q"]
+            )
     
     async def test(container: dagger.Container):
         result = container.with_workdir("/").with_exec(["mvn", "test"])
@@ -67,17 +67,16 @@ class JavaStrategy:
 
 class JSStrategy:
     def before(container: dagger.Container) -> dagger.Container:
-        return container
+        return container.with_workdir("/").with_exec(["npm","install"])
     
     async def test(container: dagger.Container):
-        result = container.with_workdir("/").with_exec(["npm", "test"])
+        result = container.with_exec(["npm", "test"])
         await result.sync()
         print(f"Test:\n{await result.stdout()}")
 
     async def solve(container: dagger.Container):
         result = (
-            container.with_workdir("/")
-            .with_exec(["java", "-cp", "target/main-0.1.0.jar", "solve.Main"])
+            container.with_exec(["npm","run" ,"solve"])
         )
 
         await result.sync()

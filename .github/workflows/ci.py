@@ -35,7 +35,7 @@ async def run_day(day_dir,taskgroup):
             .with_directory("/src", working_dir)
             .with_workdir("/src")
         )
-        # container = strategy.before(container)
+        container = strategy.before(container)
         taskgroup.start_soon(
             strategy.solve, container, name=f"{language}-solve"
         )
