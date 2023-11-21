@@ -3,7 +3,7 @@
 #### The Container
 Dockerfile's under `images/<language>` will be built with each individual challenges code mounted at `/src`
 
-#####The Strategy
+##### The Strategy
 We use the [Strategy Design Pattern](https://refactoring.guru/design-patterns/strategy) to allow for flexibility in language support
 
 See the example below on how to add your desired language
