@@ -1,15 +1,16 @@
 import dagger
 from reporting import DayReport
 
+
 class SolveStrategy:
     report: DayReport
 
     def __init__(self, year, day, language) -> None:
-        self.report = DayReport(year,day,language)
+        self.report = DayReport(year, day, language)
 
     def before(self, container: dagger.Container) -> dagger.Container:
         return container
-    
+
     async def test(self, container: dagger.Container):
         ...
 
@@ -52,9 +53,9 @@ class GoLangStrategy(SolveStrategy):
 class RustStrategy(SolveStrategy):
     def before(self, container: dagger.Container) -> dagger.Container:
         return container.with_workdir("/").with_exec(
-                ["cargo", "install", "--path","."]
-            )
-    
+            ["cargo", "install", "--path", "."]
+        )
+
     async def test(self, container: dagger.Container):
         result = container.with_exec(["cargo", "test"])
         result = await result.sync()
@@ -72,10 +73,8 @@ class RustStrategy(SolveStrategy):
 
 class JavaStrategy(SolveStrategy):
     def before(self, container: dagger.Container) -> dagger.Container:
-        return container.with_workdir("/").with_exec(
-                ["mvn", "install", "-q"]
-            )
-    
+        return container.with_workdir("/").with_exec(["mvn", "install", "-q"])
+
     async def test(self, container: dagger.Container):
         result = container.with_workdir("/").with_exec(["mvn", "test"])
         result = await result.sync()
@@ -94,10 +93,11 @@ class JavaStrategy(SolveStrategy):
         stderr = await result.stderr()
         self.report = self.report.mutate(stdout, stderr)
 
+
 class JSStrategy(SolveStrategy):
     def before(self, container: dagger.Container) -> dagger.Container:
         return container.with_workdir("/")
-    
+
     async def test(self, container: dagger.Container):
         result = container.with_exec(["npm", "test"])
         result = await result.sync()
@@ -106,9 +106,7 @@ class JSStrategy(SolveStrategy):
         self.report = self.report.mutate(stdout, stderr)
 
     async def solve(self, container: dagger.Container):
-        result = (
-            container.with_exec(["npm","run" ,"solve"])
-        )
+        result = container.with_exec(["npm", "run", "solve"])
         result = await result.sync()
         stdout = await result.stdout()
         stderr = await result.stderr()
@@ -120,8 +118,4 @@ async def handle(strategy, container):
         await strategy.test(container)
         await strategy.solve(container)
     except dagger.QueryError as e:
-        strategy.report = strategy.report.mutate(
-            "", 
-            f"{e}", 
-            passed=False
-        )
+        strategy.report = strategy.report.mutate("", f"{e}", passed=False)

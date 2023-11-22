@@ -2,7 +2,14 @@ import sys
 import anyio
 import dagger
 import re
-from solve_strategy import PyStrategy, GoLangStrategy, RustStrategy, JavaStrategy, JSStrategy, handle
+from solve_strategy import (
+    PyStrategy,
+    GoLangStrategy,
+    RustStrategy,
+    JavaStrategy,
+    JSStrategy,
+    handle,
+)
 from reporting import generate_report
 
 
@@ -19,15 +26,20 @@ DAY_REPORTS = []
 LANG_CONTAINER = {}
 
 
-def build_containers(client):
-    for language, strategy in SUPPORTED_LANGUAGE.items():
-        if strategy is None:
-            break
-        image_dir = client.host().directory(f"images/{language}")
+async def build_containers(client):
+    async with anyio.create_task_group() as taskgroup:
+        for language, strategy in SUPPORTED_LANGUAGE.items():
+            if strategy is None:
+                break
 
-        LANG_CONTAINER[language] = client.container().build(image_dir)
+            async def temp(language):
+                image_dir = client.host().directory(f"images/{language}")
+                LANG_CONTAINER[language] = client.container().build(image_dir)
 
-async def run_day(year, day, day_dir,taskgroup):
+            taskgroup.start_soon(temp, language)
+
+
+async def run_day(year, day, day_dir, taskgroup):
     entries = await day_dir.entries()
     for language, strategy in SUPPORTED_LANGUAGE.items():
         if language not in entries or strategy is None:
@@ -44,36 +56,41 @@ async def run_day(year, day, day_dir,taskgroup):
         container = strategy.before(container)
         taskgroup.start_soon(handle, strategy, container)
 
-async def run_year():
+
+async def run_year(client, taskgroup):
+    src = client.host().directory(".")
+
+    entries = await src.entries()
+    years = [e for e in entries if re.match(YEAR_REGEX, e)]
+    for year in years:
+        year_dir = src.directory(f"{year}")
+
+        entries = await year_dir.entries()
+        days = [e for e in entries if re.match(DAY_REGEX, e)]
+
+        for day in days:
+            day_dir = year_dir.directory(f"{day}")
+            taskgroup.start_soon(run_day, year, day, day_dir, taskgroup)
+
+
+async def run():
     async with dagger.Connection(dagger.Config(log_output=sys.stderr)) as client:
-        build_containers(client)
+        await build_containers(client)
 
-        src = client.host().directory(".")
+        async with anyio.create_task_group() as taskgroup:
+            taskgroup.start_soon(run_year, client, taskgroup)
 
-        entries = await src.entries()
-        years = [e for e in entries if re.match(YEAR_REGEX, e)]
-
-        for year in years:
-            year_dir = src.directory(f"{year}")
-
-            entries = await year_dir.entries()
-            days = [e for e in entries if re.match(DAY_REGEX, e)]
-
-            async with anyio.create_task_group() as tg:
-                for day in days:
-                    day_dir = year_dir.directory(f"{day}")
-                    await run_day(year, day, day_dir, tg)
-    
 
 if __name__ == "__main__":
     try:
-        anyio.run(run_year)
+        anyio.run(run)
     except dagger.ExecError as e:
         print(e)
     finally:
-        reports = map(lambda strategy: strategy.report, DAY_REPORTS)
+        reports = list(map(lambda strategy: strategy.report, DAY_REPORTS))
 
         print(generate_report(reports))
+
         for report in reports:
             if not report.passed():
                 sys.exit(1)
