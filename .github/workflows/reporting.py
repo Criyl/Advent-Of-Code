@@ -53,7 +53,6 @@ def generate_report(reports, sorted=True):
             mark = f"🚫\n{report.err}\n"
 
         result += "{0:30}{1}\n".format(f"{report.alt_name()}", mark)
-    return f"""
-{result}
+    return f"""{result}
 ---------------------------------
 {passed_count}/{total_count} passed"""
