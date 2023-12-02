@@ -40,8 +40,7 @@ SUPPORTED_LANGUAGE = {
 
 ##### The Example
 
-Include under `AoC0000/day_00/<language>` a main entry point and test files where applicable
-Include under `AoC0000/bad_day_00/<language>` an example of the tests failing where applicable
+Include under `AoC_examples/day_00/<language>` a main entry point and test files where applicable
 
 ##### The README
 
