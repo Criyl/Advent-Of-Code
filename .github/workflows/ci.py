@@ -43,7 +43,7 @@ async def run_day(year, day, day_dir, taskgroup):
     entries = await day_dir.entries()
     for language, strategy in SUPPORTED_LANGUAGE.items():
         if language not in entries or strategy is None:
-            break
+            continue
         working_dir = day_dir.directory(f"{language}")
         strategy = SUPPORTED_LANGUAGE[language](year, day, language)
         global DAY_REPORTS
