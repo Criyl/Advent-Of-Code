@@ -73,7 +73,7 @@ class RustStrategy(SolveStrategy):
 
 class JavaStrategy(SolveStrategy):
     def before(self, container: dagger.Container) -> dagger.Container:
-        return container.with_workdir("/").with_exec(["mvn", "install", "-q"])
+        return container.with_workdir("/")
 
     async def test(self, container: dagger.Container):
         result = container.with_workdir("/").with_exec(["mvn", "test"])
