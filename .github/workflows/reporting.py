@@ -47,13 +47,12 @@ def generate_report(reports, sorted=True):
         total_count += 1
 
         if report.passed():
-            mark = f"⭐"
+            mark = "⭐"
             passed_count += 1
         else:
             mark = f"🚫\n{report.err}\n"
 
-        result += "{0:30}{1}\n".format(f"{report.alt_name()}", mark)
-    return f"""
-{result}
+        result += "{0:32}{1}\n".format(f"{report.alt_name()}", mark)
+    return f"""{result}
 ---------------------------------
 {passed_count}/{total_count} passed"""

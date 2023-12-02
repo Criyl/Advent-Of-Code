@@ -7,6 +7,8 @@ import solve.Solver;
 public class SolverTest {
   @Test
   public void testSolver() {
-    assertEquals( Solver.solve("Test Case"), "Hello, World");
+    Utils utils = new Utils();
+    String content = utils.getResourceFileAsString("input.txt");
+    assertEquals(Solver.solve(content), "Hello, World");
   }
 }
