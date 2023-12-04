@@ -1,7 +1,7 @@
 package solve
 
-import org.junit.Assert
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
@@ -19,14 +19,14 @@ class SolverTest {
                             "7pqrstsixteen,76",
                             "6kvfn,66"]
     )
-    fun testSolverCaseExpected(input: String?, expected: String?) {
-        Assert.assertEquals(solve.Solver.solve_case(input), expected)
+    fun testSolverCaseExpected(input: String, expected: String) {
+        assertEquals(Solver.solve_case(input), expected)
     }
 
     @Test
     fun testSolver() {
-        val utils: solve.Utils = solve.Utils()
+        val utils: Utils = Utils()
         val content: String = utils.getResourceFileAsString("input.txt")
-        Assert.assertEquals(solve.Solver.solve(content), "281")
+        assertEquals(Solver.solve(content), "281")
     }
 }

@@ -109,7 +109,7 @@ class KotlinStrategy(SolveStrategy):
         result = (
             container.with_workdir("/")
             .with_exec(["mvn", "package"])
-            .with_exec(["java", "-cp", "target/main-0.1.0.jar", "solve.MainKt"])
+            .with_exec(["kotlin", "-cp", "target/main-0.1.0.jar", "solve.MainKt"])
         )
         result = await result.sync()
         stdout = await result.stdout()
