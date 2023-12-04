@@ -8,6 +8,7 @@ from solve_strategy import (
     RustStrategy,
     JavaStrategy,
     JSStrategy,
+    KotlinStrategy,
     handle,
 )
 from reporting import generate_report
@@ -20,6 +21,7 @@ SUPPORTED_LANGUAGE = {
     "golang": GoLangStrategy,
     "rust": RustStrategy,
     "java": JavaStrategy,
+    "kotlin": KotlinStrategy,
     "js": JSStrategy,
 }
 DAY_REPORTS = []

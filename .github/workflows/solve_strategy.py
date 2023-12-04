@@ -94,6 +94,29 @@ class JavaStrategy(SolveStrategy):
         self.report = self.report.mutate(stdout, stderr)
 
 
+class KotlinStrategy(SolveStrategy):
+    def before(self, container: dagger.Container) -> dagger.Container:
+        return container.with_workdir("/").with_exec(["mvn", "install", "-q"])
+
+    async def test(self, container: dagger.Container):
+        result = container.with_workdir("/").with_exec(["mvn", "test"])
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
+
+    async def solve(self, container: dagger.Container):
+        result = (
+            container.with_workdir("/")
+            .with_exec(["mvn", "package"])
+            .with_exec(["kotlin", "-cp", "target/main-0.1.0.jar", "solve.MainKt"])
+        )
+        result = await result.sync()
+        stdout = await result.stdout()
+        stderr = await result.stderr()
+        self.report = self.report.mutate(stdout, stderr)
+
+
 class JSStrategy(SolveStrategy):
     def before(self, container: dagger.Container) -> dagger.Container:
         return container.with_workdir("/")
