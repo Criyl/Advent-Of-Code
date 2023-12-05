@@ -1,8 +1,10 @@
 name: Tests
 on: push
 jobs:
-  test:
+  testing:
     runs-on: ubuntu-latest
+    outputs:
+      REPORT: ${{ steps.dagger.outputs.dist.report}}
     steps:
       - name: Setup Python
         uses: actions/setup-python@v3
@@ -15,12 +17,19 @@ jobs:
       - name: Install Dagger CLI
         run: curl -L https://dl.dagger.io/dagger/install.sh | sh && mkdir dist
       - name: Run Dagger CLI
+        id: dagger
         run: ./bin/dagger run python .github/workflows/ci.py >> dist/result.log
-      - name: Report
-        run: cat dist/result.log
       - name: Archive artifacts
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v3
         with:
           name: results
           path: dist/
+  report:
+    runs-on: ubuntu-latest
+    needs: testing
+    steps:
+      - env:
+          REPORT: ${{ needs.testing.outputs.REPORT }}
+        run: echo "$REPORT"
+    
