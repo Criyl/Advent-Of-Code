@@ -1,0 +1,18 @@
+version: '3'
+tasks:
+  default:
+    cmds:
+      - task -l
+  ci:
+    desc: "Run CI for all years"
+    cmds:
+      - python .github/workflows/ci.py > report.log
+  inside:
+    desc: "Run container with YEAR\\DAY\\LANGUAGE mounted"
+    vars:
+      YEAR: "AoC0000"
+      DAY: "day_00"
+      LANGUAGE: "python"
+    cmds: 
+      - docker build -t {{.LANGUAGE}}-temp ./images/{{.LANGUAGE}}
+      - docker run -it -v $(pwd)\\{{.YEAR}}\\{{.DAY}}\\{{.LANGUAGE}}:/src -w / {{.LANGUAGE}}-temp bash
