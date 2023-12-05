@@ -93,6 +93,7 @@ def solve(text):
             converted = maps[(sequence[i], sequence[i + 1])].convert(converted)
             history += [converted]
         converted_arr += [converted]
+        print(history)
     converted_arr.sort()
     return f"{converted_arr[0]}"
 
