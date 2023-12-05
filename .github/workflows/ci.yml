@@ -14,13 +14,17 @@ jobs:
         run: python3 -m pip install dagger-io
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install Dagger CLI
-        run: curl -L https://dl.dagger.io/dagger/install.sh | sh && mkdir dist
+      - name: Make dist
+        run: mkdir dist
       - name: Run Dagger CLI
         id: dagger
-        run: echo "report=$(./bin/dagger run python .github/workflows/ci.py)" >> "$GITHUB_OUTPUT"
+        run: echo "report="$(python .github/workflows/ci.py)"" >> "$GITHUB_OUTPUT"
+      - name: stuff
+        env:
+          REPORT: ${{ steps.dagger.outputs.REPORT }}
+        run: echo "$REPORT" > dist/report.log
       - name: Archive artifacts
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v3
         with:
           name: results
