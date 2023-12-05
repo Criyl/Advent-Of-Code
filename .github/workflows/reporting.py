@@ -49,7 +49,7 @@ def generate_report(reports, sorted=True):
         total_count += 1
 
         if report.passed():
-            mark = f"*"
+            mark = f"⭐"
             passed_count += 1
         else:
             mark = f"🚫\n{report.err}\n"
