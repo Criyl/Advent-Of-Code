@@ -1,5 +1,6 @@
 from dataclasses import dataclass, replace
 from typing import Optional
+from datetime import timedelta
 
 
 @dataclass(frozen=True)
@@ -10,6 +11,7 @@ class DayReport:
     out: str = ""
     err: str = ""
     passing: Optional[bool] = None
+    time_delta: timedelta = timedelta()
 
     def passed(self) -> bool:
         return self.passing
@@ -47,12 +49,14 @@ def generate_report(reports, sorted=True):
         total_count += 1
 
         if report.passed():
-            mark = f"⭐"
+            mark = f"*"
             passed_count += 1
         else:
             mark = f"🚫\n{report.err}\n"
 
-        result += "{0:30}{1}\n".format(f"{report.alt_name()}", mark)
+        result += "{0:30}{1:5}{2}\n".format(
+            f"{report.alt_name()}", mark, report.time_delta
+        )
     return f"""{result}
----------------------------------
+-------------------------------------------------
 {passed_count}/{total_count} passed"""

@@ -1,4 +1,6 @@
 import dagger
+from datetime import datetime
+from dataclasses import replace
 from reporting import DayReport
 
 
@@ -138,7 +140,11 @@ class JSStrategy(SolveStrategy):
 
 async def handle(strategy, container):
     try:
+        before = datetime.now()
         await strategy.test(container)
         await strategy.solve(container)
+        delta = datetime.now() - before
+
+        strategy.report = replace(strategy.report, time_delta=delta)
     except dagger.QueryError as e:
         strategy.report = strategy.report.mutate("", f"{e}", passed=False)

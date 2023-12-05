@@ -41,7 +41,9 @@ async def build_containers(client):
             taskgroup.start_soon(temp, language)
 
 
-async def run_day(year, day, day_dir, taskgroup):
+async def run_day(src_dir, year, day, taskgroup):
+    day_dir = src_dir.directory(f"{year}").directory(f"{day}")
+
     entries = await day_dir.entries()
     for language, strategy in SUPPORTED_LANGUAGE.items():
         if language not in entries or strategy is None:
@@ -59,20 +61,23 @@ async def run_day(year, day, day_dir, taskgroup):
         taskgroup.start_soon(handle, strategy, container)
 
 
-async def run_year(client, taskgroup):
+async def run_year(src_dir, year, taskgroup):
+    year_dir = src_dir.directory(f"{year}")
+
+    entries = await year_dir.entries()
+    days = [e for e in entries if re.match(DAY_REGEX, e)]
+
+    for day in days:
+        taskgroup.start_soon(run_day, src_dir, year, day, taskgroup)
+
+
+async def run_years(client, taskgroup):
     src = client.host().directory(".")
 
     entries = await src.entries()
     years = [e for e in entries if re.match(YEAR_REGEX, e)]
     for year in years:
-        year_dir = src.directory(f"{year}")
-
-        entries = await year_dir.entries()
-        days = [e for e in entries if re.match(DAY_REGEX, e)]
-
-        for day in days:
-            day_dir = year_dir.directory(f"{day}")
-            taskgroup.start_soon(run_day, year, day, day_dir, taskgroup)
+        taskgroup.start_soon(run_year, src, year, taskgroup)
 
 
 async def run():
@@ -80,7 +85,7 @@ async def run():
         await build_containers(client)
 
         async with anyio.create_task_group() as taskgroup:
-            taskgroup.start_soon(run_year, client, taskgroup)
+            taskgroup.start_soon(run_years, client, taskgroup)
 
 
 if __name__ == "__main__":

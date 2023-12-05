@@ -4,9 +4,11 @@ tasks:
     cmds:
       - task -l
   ci:
+    desc: "Run CI for all years"
     cmds:
       - python .github/workflows/ci.py > report.log
   inside:
+    desc: "Run container with YEAR\\DAY\\LANGUAGE mounted"
     vars:
       YEAR: "AoC0000"
       DAY: "day_00"
