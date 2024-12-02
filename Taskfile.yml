@@ -10,8 +10,8 @@ tasks:
   inside:
     desc: "Run container with YEAR\\DAY\\LANGUAGE mounted"
     vars:
-      YEAR: "AoC2023"
-      DAY: "day_05_02"
+      YEAR: "AoC2024"
+      DAY: "day_01_01"
       LANGUAGE: "python"
     cmds: 
       - docker build -t {{.LANGUAGE}}-temp ./images/{{.LANGUAGE}}
