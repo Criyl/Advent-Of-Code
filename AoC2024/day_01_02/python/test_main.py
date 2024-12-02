@@ -13,7 +13,7 @@ from main import solve
 3   9
 3   3
 """,
-            11,
+            31,
         )
     ],
 )
