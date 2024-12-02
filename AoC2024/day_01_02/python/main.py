@@ -20,12 +20,15 @@ def constructLists(text):
 def solve(text):
     lists = constructLists(text)
 
-    for i, collection in enumerate(lists):
-        lists[i] = sorted(collection)
-
     sum = 0
-    for i in range(len(lists[0])):
-        sum += abs(lists[1][i] - lists[0][i])
+
+    for i, num in enumerate(lists[0]):
+        count = 0
+        for item in lists[1]:
+            if num == item:
+                count += 1
+
+        sum += num * count
 
     return sum
 
